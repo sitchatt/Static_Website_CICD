@@ -1,38 +1,25 @@
-name: Deploy website to S3
+name: Deploy to S3 Bucket
 
 on:
   push:
     branches:
       - main
 
-env:
-  AWS_REGION: us-east-1
-  AWS_S3_BUCKET: www.myproject.in
-  SOURCE_DIR: .
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
-      - name: Verify AWS credentials
+      - name: Sync index.html and error.html to S3 bucket
         run: |
-          aws sts get-caller-identity
-
-      - name: Sync S3 bucket with source code
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --acl public-read --delete
-        env:
-          AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-          SOURCE_DIR: ${{ env.SOURCE_DIR }}
+          aws s3 cp index.html s3://www.myproject.in/index.html
+          aws s3 cp error.html s3://www.myproject.in/error.html
